@@ -31,6 +31,21 @@ public class DownloadTask {
         this.outputFile = outputFile;
     }
 
+    boolean isRunning() {
+        Thread w = worker;
+        return w != null && w.isAlive();
+    }
+
+    void awaitStop(long timeoutMs) {
+        Thread w = worker;
+        if (w != null) {
+            try {
+                w.join(timeoutMs);
+            } catch (InterruptedException ignored) {
+            }
+        }
+    }
+
     void start(DownloadTableModel model) {
         if (worker != null && worker.isAlive()) {
             return;
@@ -86,7 +101,8 @@ public class DownloadTask {
                 downloaded = 0L;
             }
 
-            try (InputStream in = new BufferedInputStream(conn.getInputStream()); OutputStream out = new BufferedOutputStream(new FileOutputStream(outputFile, existing > 0))) {
+            try (InputStream in = new BufferedInputStream(conn.getInputStream());
+                    OutputStream out = new BufferedOutputStream(new FileOutputStream(outputFile, existing > 0))) {
 
                 byte[] buf = new byte[16 * 1024];
                 int read;
